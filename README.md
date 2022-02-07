@@ -22,6 +22,7 @@ METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS      
 GET    | /users           | YES   | Get a list of users      | query: search string                            | List of matching users
 GET    | /users/:userid   | YES   | Get user profile         | userid                                          | full user profile
 PUT    | /users/:userid   | YES   | Update user profile      | userid, required role: admin                    | Updated user data
-GET    | /user/profile    | YES   | View own user profile    | -                                               | username, name, email, posts
-PUT    | /user/profile    | YES   | Update own user profile  | email, name, password                           | Updated user data
+DELETE | /users/:userid   | YES   | Deletes user profile     | userid, admin user's password, required role: admin | User deletion confirmation
+GET    | /user/profile    | YES   | View own user profile    | -                                               | full user profile
+PUT    | /user/profile    | YES   | Update own user profile  | firstName, lastName, email, password, address, city, postalCode, state, phone | Updated user data
 DELETE | /user/profile    | YES   | Deletes own user account | password                                        | User deletion confirmation
