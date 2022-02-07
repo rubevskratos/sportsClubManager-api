@@ -1,5 +1,9 @@
 # sportsClubManager
 
+## Project Description
+
+This api is designed to help sports club manage their common or shared sports materials during events, require the creation and publication of events to enable other members to participate and only allow the requisition of stock if there is a valid event published. Controls stock status and maintains traceability of stock, who owns it, availability and who is accountable of it at every event.
+
 ## API Endpoints
 
 All API Request must be prepended with /api
