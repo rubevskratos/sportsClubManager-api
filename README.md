@@ -77,3 +77,23 @@ POST   | /items           | YES   | Creates a new item       | - role: admin    
 GET    | /items/:id       | YES   | Get an item by Id        | item.id                                         | full details of the item
 PUT    | /items/:id       | YES   | Updates an item          | item.id, role: admin                            | Updated item data
 DELETE | /items/:id       | YES   | Deletes item             | item.id, role: admin                            | item deletion confirmation
+
+### Incidents Endpoints
+
+METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
+-------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
+GET    | /incidents       | YES   | Get a list of incidents  | query: search string                            | List of matching incidents
+POST   | /incidents       | YES   | Creates a new incident   | - role: admin                                   | Confirmation of incident creation
+GET    | /incidents/:id   | YES   | Get an incident by Id    | incidents.id                                    | full details of the incident
+PUT    | /incidents/:id   | YES   | Updates an incident      | incidents.id, role: admin                       | Updated incident data
+DELETE | /incidents/:id   | YES   | Deletes incident         | incidents.id, role: admin                       | incident deletion confirmation
+
+### stocksLedger Endpoints
+
+METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
+-------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
+GET    | /stocksLedger    | YES   | Get a list of entries    | query: search string -role: admin               | List of matching entries
+POST   | /stocksLedger    | YES   | Creates a new entry      | -                                               | Confirmation of entry creation
+GET    | /stocksLedger/:id| YES   | Get an entry by Id       | stocksLedger.id - role: admin                   | full details of the entry
+
+- Ledger will work as a validated history log, hence it cannot be update through enpoints and and entry cannot be deleted, only way to correct an error is to create an entry to correct the previous error. (e.g. if by error i have removed 3 units from stock, i can create a return of 3 units to the stock)
