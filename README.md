@@ -24,10 +24,14 @@ POST   | /auth/check      | YES   | Auth Token check         | -                
 METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
 -------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
 GET    | /users           | YES   | Get a list of users      | query: search string                            | List of matching users
-GET    | /users/:userid   | YES   | Get user profile         | userid                                          | full user profile
-PUT    | /users/:userid   | YES   | Update user profile      | userid, required role: admin                    | Updated user data
-DELETE | /users/:userid   | YES   | Deletes user profile     | userid, admin user's password, required role: admin | User deletion confirmation
+GET    | /users/:id       | YES   | Get user profile         | userid                                          | full user profile
+PUT    | /users/:id       | YES   | Update user profile      | userid, required role: admin                    | Updated user data
+DELETE | /users/:id       | YES   | Deletes user profile     | userid, admin user's password, required role: admin | User deletion confirmation
+GET    | /users/:id/materials | YES | Lists all materials held by a user | users.id, query: search string      | List of user material
+GET    | /users/:id/events | YES | Lists all events where user id is in | users.id, query: search string       | List of user events by search string, default: all
 GET    | /user/profile    | YES   | View own user profile    | -                                               | full user profile
+GET    | /users/profile/materials | YES | Lists all materials held by own | query: search string               | List of own user material
+GET    | /users/profile/events | YES | Lists all events where user is in | query: search string               | List of own user events by search string, default: all
 PUT    | /user/profile    | YES   | Update own user profile  | -                                               | Updated user data
 DELETE | /user/profile    | YES   | Deletes own user account | password                                        | User deletion confirmation
 
@@ -38,6 +42,8 @@ METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS      
 GET    | /events          | YES   | Get a list of events     | query: search string                            | List of matching events
 POST   | /events          | YES   | Creates a new event      | -   role: admin || member                       | Confirmation of event creation
 GET    | /events/:id      | YES   | Get an event by Id       | events.id                                       | full details of the event
+GET    | /events/:id/participants | YES   | Get an event participant list | events.id, query: search string    | full details of the event
+GET    | /events/:id/materials    | YES   | Get an event materials list   | events.id, query: search string    | full details of the event
 PUT    | /events/:id      | YES   | Updates an event         | events.id, role: admin || events.organizer.id   | Updated event data
 DELETE | /events/:id      | YES   | Deletes event            | events.id, role: admin || events.organizer.id   | Event deletion confirmation
 
