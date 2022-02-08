@@ -15,8 +15,8 @@ The Authentication flow for the application is:
 
 METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
 -------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
-POST   | /auth/signup     | -     | User Signup              | firstName, lastName, email, password, address, city, postalCode, state, phone            | token
-POST   | /auth/login      | -     | User Login               | email, password                              | token
+POST   | /auth/signup     | -     | User Signup              | -                                               | token
+POST   | /auth/login      | -     | User Login               | -                                               | token
 POST   | /auth/check      | YES   | Auth Token check         | -                                               |
 
 ### User Endpoints
@@ -28,5 +28,49 @@ GET    | /users/:userid   | YES   | Get user profile         | userid           
 PUT    | /users/:userid   | YES   | Update user profile      | userid, required role: admin                    | Updated user data
 DELETE | /users/:userid   | YES   | Deletes user profile     | userid, admin user's password, required role: admin | User deletion confirmation
 GET    | /user/profile    | YES   | View own user profile    | -                                               | full user profile
-PUT    | /user/profile    | YES   | Update own user profile  | firstName, lastName, email, password, address, city, postalCode, state, phone | Updated user data
+PUT    | /user/profile    | YES   | Update own user profile  | -                                               | Updated user data
 DELETE | /user/profile    | YES   | Deletes own user account | password                                        | User deletion confirmation
+
+### Event Endpoints
+
+METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
+-------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
+GET    | /events          | YES   | Get a list of events     | query: search string                            | List of matching events
+POST   | /events          | YES   | Creates a new event      | -   role: admin || member                       | Confirmation of event creation
+GET    | /events/:id      | YES   | Get an event by Id       | events.id                                       | full details of the event
+PUT    | /events/:id      | YES   | Updates an event         | events.id, role: admin || events.organizer.id   | Updated event data
+DELETE | /events/:id      | YES   | Deletes event            | events.id, role: admin || events.organizer.id   | Event deletion confirmation
+*** Creation, modification or deletion of events is only available for users with role member or admin.
+**** Member users can only modify or delete their own events
+
+### Location Endpoints
+
+METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
+-------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
+GET    | /locations       | YES   | Get a list of locations  | query: search string                            | List of matching locations
+POST   | /locations       | YES   | Creates a new location   | - role: admin                                   | Confirmation of location creation
+GET    | /locations/:id   | YES   | Get a location by Id     | locations.id                                    | full details of the location
+PUT    | /locations/:id   | YES   | Updates a location       | locations.id, role: admin                       | Updated location data
+DELETE | /locations/:id   | YES   | Deletes location         | locations.id, role: admin                       | Location deletion confirmation
+*** Creation, modification or deletion of locations is only available to admin users
+
+### Warehouse Endpoints
+
+METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
+-------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
+GET    | /warehouses      | YES   | Get a list of warehouses | query: search string                            | List of matching warehouses
+POST   | /warehouses      | YES   | Creates a new warehouse  | - role: admin                                   | Confirmation of warehouse creation
+GET    | /warehouses/:id  | YES   | Get a warehouse by Id    | warehouses.id                                   | full details of the warehouse
+PUT    | /warehouses/:id  | YES   | Updates a warehouse      | warehouses.id, role: admin                      | Updated warehouse data
+DELETE | /warehouses/:id  | YES   | Deletes location         | locationss.id, role: admin                      | warehouse deletion confirmation
+*** All warehouse endpoints are available to admin user only
+
+### Items Endpoints
+
+METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
+-------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
+GET    | /items           | YES   | Get a list of items      | query: search string                            | List of matching items
+POST   | /items           | YES   | Creates a new item       | - role: admin                                   | Confirmation of item creation
+GET    | /items/:id       | YES   | Get an item by Id        | item.id                                         | full details of the item
+PUT    | /items/:id       | YES   | Updates an item          | item.id, role: admin                            | Updated item data
+DELETE | /items/:id       | YES   | Deletes item             | item.id, role: admin                            | item deletion confirmation
