@@ -40,6 +40,7 @@ POST   | /events          | YES   | Creates a new event      | -   role: admin |
 GET    | /events/:id      | YES   | Get an event by Id       | events.id                                       | full details of the event
 PUT    | /events/:id      | YES   | Updates an event         | events.id, role: admin || events.organizer.id   | Updated event data
 DELETE | /events/:id      | YES   | Deletes event            | events.id, role: admin || events.organizer.id   | Event deletion confirmation
+
 *** Creation, modification or deletion of events is only available for users with role member or admin.
 **** Member users can only modify or delete their own events
 
@@ -52,6 +53,7 @@ POST   | /locations       | YES   | Creates a new location   | - role: admin    
 GET    | /locations/:id   | YES   | Get a location by Id     | locations.id                                    | full details of the location
 PUT    | /locations/:id   | YES   | Updates a location       | locations.id, role: admin                       | Updated location data
 DELETE | /locations/:id   | YES   | Deletes location         | locations.id, role: admin                       | Location deletion confirmation
+
 *** Creation, modification or deletion of locations is only available to admin users
 
 ### Warehouse Endpoints
@@ -63,6 +65,7 @@ POST   | /warehouses      | YES   | Creates a new warehouse  | - role: admin    
 GET    | /warehouses/:id  | YES   | Get a warehouse by Id    | warehouses.id                                   | full details of the warehouse
 PUT    | /warehouses/:id  | YES   | Updates a warehouse      | warehouses.id, role: admin                      | Updated warehouse data
 DELETE | /warehouses/:id  | YES   | Deletes location         | locationss.id, role: admin                      | warehouse deletion confirmation
+
 *** All warehouse endpoints are available to admin user only
 
 ### Items Endpoints
