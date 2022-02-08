@@ -22,11 +22,11 @@ const login = async (req, res) => {
   try {
     const user = await userModel.findOne({ username: req.body.username })
 
-    if (user === null) return res.status(500).send('Username or password not valid')
+    if (!user) return res.status(500).send('Username or password not valid')
 
     bcrypt.compare(req.body.password, user.password, (err, result) => {
       if (err) return res.status(500).send('Username or password not valid')
-
+      if (!result) return res.status(500).send('Username or password not valid')
       const token = jwt.sign({ email: user.email }, process.env.SECRET, { expiresIn: '7d' })
       res.status(200).json({ token })
     })

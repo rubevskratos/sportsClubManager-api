@@ -7,6 +7,8 @@ const mongoose = require('mongoose')
 const morgan = require('morgan')
 const cors = require('cors')
 
+// Start database connection. MongoDB server must be running
+
 ;(async function dbConnect () {
   try {
     await mongoose.connect(`${process.env.MONGODB_URL}`, {
@@ -17,6 +19,8 @@ const cors = require('cors')
     throw new Error('Error conectando en la base de datos')
   }
 })()
+
+// Starts express server.
 
 const app = express()
 
