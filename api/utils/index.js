@@ -13,11 +13,28 @@ const checkAuth = (req, res, next) => {
       res.locals.user = {
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
       next()
     }
   })
 }
 
-module.exports = checkAuth
+const checkRole = (req, res, next) => {
+  if (!res.locals.user) return res.status(400).send('User data was not found')
+  if (res.locals.role !== 'member' || res.locals.role !== 'admin') return res.status(500).send('Error: User rights not met')
+  next()
+}
+
+const checkAdmin = (req, res, next) => {
+  if (!res.locals.user) return res.status(400).send('User data was not found')
+  if (res.locals.role !== 'admin') return res.status(500).send('Error: User rights not met')
+  next()
+}
+
+module.exports = {
+  checkAuth,
+  checkRole,
+  checkAdmin
+}
