@@ -40,12 +40,12 @@ DELETE | /user/profile    | YES   | Deletes own user account | password         
 METHOD | ENDPOINT         | TOKEN | DESCRIPTION              | POST PARAMS                                     | RETURNS
 -------|------------------|-------|--------------------------|-------------------------------------------------|--------------------
 GET    | /events          | YES   | Get a list of events     | query: search string                            | List of matching events
-POST   | /events          | YES   | Creates a new event      | -   role: admin || member                       | Confirmation of event creation, creates entry in stocksLedger to modify stock availability, modifies items to reflect stock availability, modifies users to reflect items held.
+POST   | /events          | YES   | Creates a new event      | -   role: admin or member                       | Confirmation of event creation, creates entry in stocksLedger to modify stock availability, modifies items to reflect stock availability, modifies users to reflect items held.
 GET    | /events/:id      | YES   | Get an event by Id       | events.id                                       | full details of the event
 GET    | /events/:id/participants | YES   | Get an event participant list | events.id, query: search string    | full details of the event
 GET    | /events/:id/materials    | YES   | Get an event materials list   | events.id, query: search string    | full details of the event
-PUT    | /events/:id      | YES   | Updates an event         | events.id, role: admin || events.organizer.id   | Updated event data, creates entry in stocksLedger to modify stock availability, modifies items to reflect stock availability, modifies users to reflect items held.
-DELETE | /events/:id      | YES   | Deletes event            | events.id, role: admin || events.organizer.id   | Event deletion confirmation
+PUT    | /events/:id      | YES   | Updates an event         | events.id, role: admin or events.organizer.id   | Updated event data, creates entry in stocksLedger to modify stock availability, modifies items to reflect stock availability, modifies users to reflect items held.
+DELETE | /events/:id      | YES   | Deletes event            | events.id, role: admin or events.organizer.id   | Event deletion confirmation
 
 - Creation, modification or deletion of events is only available for users with role member or admin.
 - Member users can only modify or delete their own events
