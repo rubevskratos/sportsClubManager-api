@@ -13,14 +13,13 @@ const signup = async (req, res) => {
 
     res.status(200).json({ token })
   } catch (error) {
-    console.log(error)
     res.status(500).send('Error creating user')
   }
 }
 
 const login = async (req, res) => {
   try {
-    const user = await Users.findOne({ username: req.body.username })
+    const user = await Users.findOne({ email: req.body.email })
 
     if (!user) return res.status(500).send('Username or password not valid')
 

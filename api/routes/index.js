@@ -5,7 +5,7 @@ const eventRouter = require('./event.router')
 
 router.use('/auth', authRouter)
 router.use('/users', userRouter)
-router.use('/event', eventRouter)
+router.use('/events', eventRouter)
 // router.use('/item', itemRouter)
 // router.use('/inventory', inventoryRouter)
 
