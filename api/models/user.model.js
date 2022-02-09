@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId
     }
   ],
+  events: [
+    {
+      type: mongoose.Schema.Types.ObjectId
+    }
+  ],
   created: {
     type: Date,
     default: new Date(),
