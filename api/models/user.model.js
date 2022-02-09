@@ -42,7 +42,8 @@ const userSchema = new mongoose.Schema({
   ],
   events: [
     {
-      type: mongoose.Schema.Types.ObjectId
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'event'
     }
   ],
   created: {

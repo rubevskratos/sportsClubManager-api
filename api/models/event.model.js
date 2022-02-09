@@ -20,11 +20,13 @@ const eventSchema = new mongoose.Schema({
   },
   organizer: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
     required: [true, 'Error: Event needs an organizer'],
     unmodifiable: true
   },
   maxParticipants: {
-    type: Number
+    type: Number,
+    min: [process.env.MIN_EVENT_PARTICIPANTS, `Maximum number of participants cannot be less than ${process.env.MIN_EVENT_PARTICIPANTS}`]
   },
   minParticipants: {
     type: Number,
@@ -40,13 +42,15 @@ const eventSchema = new mongoose.Schema({
   },
   participants: [
     {
-      type: mongoose.Schema.Types.ObjectId
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user'
     }
   ],
   materials: [
     {
       item: {
-        type: mongoose.Schema.Types.ObjectId
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'material'
       },
       qtyBooked: {
         type: Number,
