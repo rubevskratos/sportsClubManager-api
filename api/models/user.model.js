@@ -37,7 +37,8 @@ const userSchema = new mongoose.Schema({
   },
   materialHeld: [
     {
-      type: mongoose.Schema.Types.ObjectId
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'material'
     }
   ],
   events: [
