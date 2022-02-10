@@ -27,7 +27,7 @@ async function updateEvent (req, res) {
       .populate('organizer')
 
     if (user.role !== 'admin' && event.organizer.id !== user.id) {
-      res.status(403).send('Error: Only and administrator or event organized are authorized to update this event.')
+      res.status(403).send('Error: Only an administrator or event organizer is authorized to update this event.')
     } else {
       for (const key in req.body) {
         if (Object.hasOwnProperty.call(req.body, key)) {
@@ -36,8 +36,8 @@ async function updateEvent (req, res) {
         }
       }
       event.save()
+      res.status(200).json('Event updated')
     }
-    res.status(200).json('Event updated')
   } catch (error) {
     res.status(500).json(error)
     throw new Error(error)
@@ -52,7 +52,7 @@ async function deleteEvent (req, res) {
       .populate('organizer')
 
     if (user.role !== 'admin' && event.organizer.id !== user.id) {
-      res.status(403).send('Error: Only and administrator or event organized are authorized to delete this event.')
+      res.status(403).send('Error: Only an administrator or event organizer is authorized to delete this event.')
     } else {
       await Events.findByIdAndDelete(req.params.id)
     }
@@ -68,9 +68,9 @@ async function addParticipant (req, res) {
     const event = await Events.findById(req.params.id)
       .populate('participants')
       .populate('organizer')
-    const user = await Users.findOne({ id: req.params.userId } || { email: res.locals.user.email })
+    const query = req.params.userId ? { id: req.params.userId } : { email: res.locals.user.email }
+    const user = await Users.findOne(query)
       .populate('events')
-    console.log(user)
     if (event.maxParticipants && event.participants.length === event.maxParticipants) {
       res.status(500).send('Error: This event is fully booked')
     } else {
@@ -81,9 +81,7 @@ async function addParticipant (req, res) {
       } else {
         event.participants.push(user.id)
         event.save()
-        console.log(event.id)
         user.events.push(event.id)
-        console.log(user)
         user.save()
         res.status(200).send('Success: Participant joined.')
       }
@@ -117,11 +115,11 @@ async function getParticipants (req, res) {
     if (!event.participants) {
       res.status(403).send('Error: No participants found')
     } else {
-      await event.populate('participants')
+      await event.populate('participants', { firstName: 1, lastName: 1, email: 1, materialHeld: 1, phone: 1, _id: 0 })
     }
     res.status(200).json(event.participants)
   } catch (error) {
-    res.satatus(500).send('Error: Server error')
+    res.status(500).send('Error: Server error')
   }
 }
 
