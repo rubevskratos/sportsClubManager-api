@@ -2,7 +2,7 @@
 const Events = require('../models/event.model')
 const Users = require('../models/user.model')
 
-async function createEvent (req, res) {
+async function createEvent (req, res, next) {
   try {
     const user = await Users.findOne({ email: res.locals.user.email })
       .populate('events')
@@ -14,12 +14,11 @@ async function createEvent (req, res) {
     user.save()
     res.status(200).json(event)
   } catch (error) {
-    res.status(500).json(error)
-    throw new Error(error)
+    next(error)
   }
 }
 
-async function updateEvent (req, res) {
+async function updateEvent (req, res, next) {
   try {
     const user = await Users.findOne({ email: res.locals.user.email })
     const event = await Events.findById(req.params.id)
@@ -38,12 +37,11 @@ async function updateEvent (req, res) {
       res.status(200).json('Event updated')
     }
   } catch (error) {
-    res.status(500).json(error)
-    throw new Error(error)
+    next(error)
   }
 }
 
-async function deleteEvent (req, res) {
+async function deleteEvent (req, res, next) {
   try {
     const user = await Users.findOne({ email: res.locals.user.email })
 
@@ -68,12 +66,11 @@ async function deleteEvent (req, res) {
       res.status(200).json('Event deletion complete')
     }
   } catch (error) {
-    res.status(500).json(error)
-    throw new Error(error)
+    next(error)
   }
 }
 
-async function addParticipant (req, res) {
+async function addParticipant (req, res, next) {
   try {
     const event = await Events.findById(req.params.id)
       .populate('participants')
@@ -97,29 +94,51 @@ async function addParticipant (req, res) {
       }
     }
   } catch (error) {
-    res.status(500).send('Error: Server error')
+    next(error)
   }
 }
 
-async function getEvents (req, res) {
+async function removeParticipant (req, res, next) {
+  try {
+    const event = await Events.findById(req.params.id)
+      .populate('organizer')
+      .populate('participants')
+    const participant = await Users.findById(req.params.userId)
+      .populate('events')
+
+    if (res.locals.user.role === 'admin' || event.organizer.email === res.locals.user.email || participant.email === res.locals.user.email) {
+      event.participants = event.participants.filter(e => e.id !== participant.id)
+      event.save()
+      participant.events = participant.events.filter(e => e.id !== event.id)
+      participant.save()
+      res.status(200).send('Success: Participant has been removed.')
+    } else {
+      res.status(403).send('Error: You are not authorized to perform this action.')
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function getEvents (req, res, next) {
   try {
     const events = await Events.find(req.query || {})
     res.status(200).json(events)
   } catch (error) {
-    res.status(500).send('Error: Server error')
+    next(error)
   }
 }
 
-async function getOneEvent (req, res) {
+async function getOneEvent (req, res, next) {
   try {
     const event = await Events.findById(req.params.id)
     res.status(200).json(event)
   } catch (error) {
-    res.status(500).send('Error: Server error')
+    next(error)
   }
 }
 
-async function getParticipants (req, res) {
+async function getParticipants (req, res, next) {
   try {
     const event = await Events.findById(req.params.id)
     if (!event.participants) {
@@ -129,7 +148,7 @@ async function getParticipants (req, res) {
     }
     res.status(200).json(event.participants)
   } catch (error) {
-    res.status(500).send('Error: Server error')
+    next(error)
   }
 }
 
@@ -140,5 +159,6 @@ module.exports = {
   getEvents,
   getOneEvent,
   getParticipants,
-  addParticipant
+  addParticipant,
+  removeParticipant
 }
