@@ -113,7 +113,7 @@ async function updateOwnUser (req, res) {
 
 async function deleteOwnUser (req, res) {
   try {
-    await Users.findByIdAndDelete(res.locals.user)
+    await Users.findOneAndDelete(res.locals.user)
     res.json('Usuario eliminado')
   } catch (error) { res.send(error) }
 }
