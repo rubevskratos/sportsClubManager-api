@@ -58,6 +58,7 @@ const eventSchema = new mongoose.Schema({
       },
       usedBy: {
         type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
         required: true,
         default: this.organizer
       },
@@ -69,7 +70,8 @@ const eventSchema = new mongoose.Schema({
     }
   ],
   location: {
-    type: mongoose.Schema.Types.ObjectId
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'location'
   },
   created: {
     type: Date,
