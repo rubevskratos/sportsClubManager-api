@@ -22,7 +22,6 @@ async function createEvent (req, res) {
 async function updateEvent (req, res) {
   try {
     const user = await Users.findOne({ email: res.locals.user.email })
-
     const event = await Events.findById(req.params.id)
       .populate('organizer')
 
@@ -50,13 +49,24 @@ async function deleteEvent (req, res) {
 
     const event = await Events.findById(req.params.id)
       .populate('organizer')
+      .populate('participants')
+
+    const organizer = await Users.findById(event.organizer.id)
+      .populate('events')
 
     if (user.role !== 'admin' && event.organizer.id !== user.id) {
       res.status(403).send('Error: Only an administrator or event organizer is authorized to delete this event.')
     } else {
+      event.participants.forEach(async (participant) => {
+        await participant.populate('events')
+        participant.events = participant.events.filter(e => e.id !== event.id)
+        participant.save()
+      })
+      organizer.events = organizer.events.filter(e => e.id !== event.id)
+      organizer.save()
       await Events.findByIdAndDelete(req.params.id)
+      res.status(200).json('Event deletion complete')
     }
-    res.send(200).json()
   } catch (error) {
     res.status(500).json(error)
     throw new Error(error)
