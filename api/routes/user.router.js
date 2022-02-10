@@ -30,6 +30,6 @@ router.delete('/profile', checkAuth, deleteOwnUser)
 // router.get('/:id/events', checkAuth, getUserEvents)
 router.get('/:id', checkAuth, getUser)
 router.put('/:id', checkAuth, checkAdmin, updatetUser)
-router.delete('/:id', checkAuth, deleteUser)
+router.delete('/:id', checkAuth, checkAdmin, deleteUser)
 
 module.exports = router
