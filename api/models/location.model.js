@@ -13,7 +13,7 @@ const locationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  coordinates: [{
+  coordinates: {
     lat: {
       type: String,
       required: true
@@ -22,7 +22,7 @@ const locationSchema = new mongoose.Schema({
       type: String,
       required: true
     }
-  }]
+  }
 })
 
 const locationModel = mongoose.model('location', locationSchema)
