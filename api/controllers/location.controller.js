@@ -10,7 +10,7 @@ async function getAllLocations (req, res) {
 async function createLocation (req, res) {
   try {
     const location = await Location.create(req.body)
-    res.status(200).json('Localización creada')
+    res.status(200).json(location)
   } catch (error) { res.send(error) }
 }
 
