@@ -6,6 +6,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const morgan = require('morgan')
 const cors = require('cors')
+const errorHandling = require('./api/utils/errorHandling.js')
 
 // Start database connection. MongoDB server must be running
 
@@ -33,6 +34,7 @@ try {
     .use('/', (req, res) => {
       res.send('API running ok')
     })
+    .use(errorHandling)
     .listen(process.env.EXPRESS_PORT, () => {
       console.info('\n\n' + '>'.repeat(40))
       console.info('💻  API en linea')
