@@ -12,6 +12,7 @@ async function createEvent (req, res, next) {
     const event = await Events.create(req.body)
     user.events.push(event.id)
     user.save()
+
     res.status(200).json(event)
   } catch (error) {
     next(error)
@@ -149,6 +150,110 @@ async function getParticipants (req, res, next) {
     res.status(200).json(event.participants)
   } catch (error) {
     next(error)
+  }
+}
+
+async function updateEvent (req, res) {
+  try {
+    const user = await Users.findOne({ email: res.locals.user.email })
+
+    const event = await Events.findById(req.params.id)
+      .populate('organizer')
+
+    if (user.role !== 'admin' && event.organizer.id !== user.id) {
+      res.status(403).send('Error: Only an administrator or event organizer is authorized to update this event.')
+    } else {
+      for (const key in req.body) {
+        if (Object.hasOwnProperty.call(req.body, key)) {
+          const element = req.body[key]
+          event[key] = element
+        }
+      }
+      event.save()
+      res.status(200).json('Event updated')
+    }
+  } catch (error) {
+    res.status(500).json(error)
+    throw new Error(error)
+  }
+}
+
+async function deleteEvent (req, res) {
+  try {
+    const user = await Users.findOne({ email: res.locals.user.email })
+
+    const event = await Events.findById(req.params.id)
+      .populate('organizer')
+
+    if (user.role !== 'admin' && event.organizer.id !== user.id) {
+      res.status(403).send('Error: Only an administrator or event organizer is authorized to delete this event.')
+    } else {
+      await Events.findByIdAndDelete(req.params.id)
+    }
+    res.send(200).json()
+  } catch (error) {
+    res.status(500).json(error)
+    throw new Error(error)
+  }
+}
+
+async function addParticipant (req, res) {
+  try {
+    const event = await Events.findById(req.params.id)
+      .populate('participants')
+      .populate('organizer')
+    const query = req.params.userId ? { id: req.params.userId } : { email: res.locals.user.email }
+    const user = await Users.findOne(query)
+      .populate('events')
+    if (event.maxParticipants && event.participants.length === event.maxParticipants) {
+      res.status(500).send('Error: This event is fully booked')
+    } else {
+      const checkAlreadyJoined = event.participants.find(e => e.id === user.id)
+      const checkOrganizer = event.organizer.id === user.id
+      if (checkAlreadyJoined || checkOrganizer) {
+        res.status(500).send('Error: User already joined this event.')
+      } else {
+        event.participants.push(user.id)
+        event.save()
+        user.events.push(event.id)
+        user.save()
+        res.status(200).send('Success: Participant joined.')
+      }
+    }
+  } catch (error) {
+    res.status(500).send('Error: Server error')
+  }
+}
+
+async function getEvents (req, res) {
+  try {
+    const events = await Events.find(req.query || {})
+    res.status(200).json(events)
+  } catch (error) {
+    res.status(500).send('Error: Server error')
+  }
+}
+
+async function getOneEvent (req, res) {
+  try {
+    const event = await Events.findById(req.params.id)
+    res.status(200).json(event)
+  } catch (error) {
+    res.status(500).send('Error: Server error')
+  }
+}
+
+async function getParticipants (req, res) {
+  try {
+    const event = await Events.findById(req.params.id)
+    if (!event.participants) {
+      res.status(403).send('Error: No participants found')
+    } else {
+      await event.populate('participants', { firstName: 1, lastName: 1, email: 1, materialHeld: 1, phone: 1, _id: 0 })
+    }
+    res.status(200).json(event.participants)
+  } catch (error) {
+    res.status(500).send('Error: Server error')
   }
 }
 

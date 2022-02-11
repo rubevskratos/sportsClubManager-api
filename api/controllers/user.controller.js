@@ -6,14 +6,14 @@ async function getAllUsers (req, res) {
   try {
     const query = req.query || {}
     const users = await Users.find(query)
-    res.json(users)
+    res.status(200).json(users)
   } catch (error) { res.send(error) }
 }
 
 async function getUser (req, res) {
   try {
     const user = await Users.findById(req.params.id)
-    res.json(user)
+    res.status(200).json(user)
   } catch (error) { res.send(error) }
 }
 
@@ -46,7 +46,7 @@ async function updatetUser (req, res) {
 async function deleteUser (req, res) {
   try {
     await Users.findByIdAndDelete(req.params.id)
-    res.json('Usuario eliminado')
+    res.status(200).json('Usuario eliminado')
   } catch (error) { res.send(error) }
 }
 
@@ -67,7 +67,7 @@ async function deleteUser (req, res) {
 async function getOwnUser (req, res) {
   try {
     const user = await Users.find({ email: res.locals.user.email })
-    res.json(user)
+    res.status(200).json(user)
   } catch (error) { res.send(error) }
 }
 
@@ -104,9 +104,9 @@ async function updateOwnUser (req, res) {
 
     if (req.body.password || req.body.email) { // if e-mail or password are updated, then release new token.
       const token = jwt.sign({ email: user.email }, process.env.SECRET, { expiresIn: '7d' })
-      res.json({ token })
+      res.status(200).json({ token })
     } else {
-      res.json(user)
+      res.status(200).json(user)
     }
   } catch (error) { res.send(error) }
 }
@@ -114,7 +114,7 @@ async function updateOwnUser (req, res) {
 async function deleteOwnUser (req, res) {
   try {
     await Users.findOneAndDelete(res.locals.user)
-    res.json('Usuario eliminado')
+    res.status(200).json('Usuario eliminado')
   } catch (error) { res.send(error) }
 }
 
