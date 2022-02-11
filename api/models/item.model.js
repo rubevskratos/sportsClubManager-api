@@ -10,19 +10,19 @@ const itemSchema = new mongoose.Schema({
     required: true
   },
   properties: {
+    subtype: { type: String },
     serialNumber: {
       type: String,
       unique: true,
       sparse: true
     },
-    subtype: String,
-    lenght: Number,
-    width: Number,
-    expiracy: Date,
-    size: String,
-    color: String,
-    tags: [String],
-    QRCode: String
+    length: { type: Number },
+    width: { type: Number },
+    expiracy: { type: Date },
+    size: { type: String },
+    color: { type: String },
+    tags: [{ type: String }],
+    QRCode: { type: String }
   },
   qtyAvailable: {
     type: Number,
