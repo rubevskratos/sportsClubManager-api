@@ -2,8 +2,8 @@ const Location = require('../models/location.model')
 
 async function getAllLocations (req, res) {
   try {
-    const locations = await Location.find()
-    res.json(locations)
+    const locations = await Location.find(req.query || {})
+    res.status(200).json(locations)
   } catch (error) { res.send(error) }
 }
 
@@ -24,7 +24,6 @@ async function getLocation (req, res) {
 async function updateLocation (req, res) {
   try {
     const location = await Location.findById(req.params.id)
-    console.log(location)
     for (const param in req.body) { // For each param in the body, update location param
       if (Object.hasOwnProperty.call(req.body, param)) {
         const element = req.body[param]
