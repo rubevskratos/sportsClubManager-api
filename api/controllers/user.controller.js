@@ -2,22 +2,22 @@ const Users = require('../models/user.model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-async function getAllUsers (req, res) {
+async function getAllUsers (req, res, next) {
   try {
     const query = req.query || {}
     const users = await Users.find(query)
     res.status(200).json(users)
-  } catch (error) { res.send(error) }
+  } catch (error) { next(error) }
 }
 
-async function getUser (req, res) {
+async function getUser (req, res, next) {
   try {
     const user = await Users.findById(req.params.id)
     res.status(200).json(user)
-  } catch (error) { res.send(error) }
+  } catch (error) { next(error) }
 }
 
-async function updatetUser (req, res) {
+async function updatetUser (req, res, next) {
   try {
     const user = await Users.findById(req.params.id) // Get user profile from database
 
@@ -26,10 +26,16 @@ async function updatetUser (req, res) {
       req.body.password = hash
     }
 
-    for (const param in req.body) { // For each param in the body, update user's param
+    for (const param in req.body) { // For each param in the body, update user's param, ignores updates in materials or events through this route, and checks for admin on role updates.
       if (Object.hasOwnProperty.call(req.body, param)) {
-        const element = req.body[param]
-        user[param] = element
+        if (param !== 'materials' || param !== 'events') {
+          if (param === 'role' && res.locals.user.role !== 'admin') {
+            res.send(403).send('Error: Only an administrator can update user roles')
+          } else {
+            const element = req.body[param]
+            user[param] = element
+          }
+        }
       }
     }
     user.save() // Save updated user
@@ -40,52 +46,67 @@ async function updatetUser (req, res) {
     } else {
       res.json(user)
     }
-  } catch (error) { res.send(error) }
+  } catch (error) { next(error) }
 }
 
-async function deleteUser (req, res) {
+async function deleteUser (req, res, next) {
   try {
-    await Users.findByIdAndDelete(req.params.id)
-    res.status(200).json('Usuario eliminado')
-  } catch (error) { res.send(error) }
+    const user = await Users.findById(req.params.id)
+      .populate('materials')
+      .populate('events')
+
+    const materialsInUse = user.materials.filter(e => e.status === 'in use').length
+    const eventsInProgress = user.materials.filter(e => e.status === 'in progress').length
+
+    if (materialsInUse > 0 || eventsInProgress > 0) {
+      res.status(403).send('Error: User cannot be deleted while it still has materials in use or events in progress')
+    } else {
+      user.delete()
+      res.status(200).json('Succeed: User has been deleted')
+    }
+  } catch (error) { next(error) }
 }
 
-/* async function getUserMaterials (req, res) {
+async function getUserMaterials (req, res, next) {
   try {
-    const materials = await Users.findById(req.params.id).populate('materials')
-    res.json(materials)
-  } catch (error) { res.send(error) }
-} */
+    const user = await Users.findById(req.params.id)
+      .populate('materials')
+    res.status(200).json(user.materials)
+  } catch (error) { next(error) }
+}
 
-/* async function getUserEvents (req, res) {
+async function getUserEvents (req, res, next) {
   try {
-    const events = await Users.findById(req.params.id).populate('events')
-    res.json(events)
-  } catch (error) { res.send(error) }
-} */
+    const user = await Users.findById(req.params.id)
+      .populate('events')
+    res.status(200).json(user.events)
+  } catch (error) { next(error) }
+}
 
-async function getOwnUser (req, res) {
+async function getOwnUser (req, res, next) {
   try {
     const user = await Users.find({ email: res.locals.user.email })
     res.status(200).json(user)
-  } catch (error) { res.send(error) }
+  } catch (error) { next(error) }
 }
 
-/* async function getOwnUserMaterials (req, res) {
+async function getOwnUserMaterials (req, res, next) {
   try {
-    const materials = await Users.findOne(res.locals.users).populate('materials')
-    res.json(materials)
-  } catch (error) { res.send(error) }
-} */
+    const user = await Users.findOne(res.locals.users)
+      .populate('materials')
+    res.status(200).json(user.materials)
+  } catch (error) { next(error) }
+}
 
-/* async function getOwnUserEvents (req, res) {
+async function getOwnUserEvents (req, res, next) {
   try {
-    const events = await Users.findOne(res.locals.users).populate('events')
-    res.json(events)
-  } catch (error) { res.send(error) }
-} */
+    const user = await Users.findOne(res.locals.users)
+      .populate('events')
+    res.status(200).json(user.events)
+  } catch (error) { next(error) }
+}
 
-async function updateOwnUser (req, res) {
+async function updateOwnUser (req, res, next) {
   try {
     const user = await Users.findOne(res.locals.user) // Get user profile from database
 
@@ -96,8 +117,14 @@ async function updateOwnUser (req, res) {
 
     for (const param in req.body) { // For each param in the body, update user's param
       if (Object.hasOwnProperty.call(req.body, param)) {
-        const element = req.body[param]
-        user[param] = element
+        if (param !== 'materials' || param !== 'events') {
+          if (param === 'role' && res.locals.user.role !== 'admin') {
+            res.send(403).send('Error: Only an administrator can update user roles')
+          } else {
+            const element = req.body[param]
+            user[param] = element
+          }
+        }
       }
     }
     user.save() // Save updated user
@@ -108,14 +135,25 @@ async function updateOwnUser (req, res) {
     } else {
       res.status(200).json(user)
     }
-  } catch (error) { res.send(error) }
+  } catch (error) { next(error) }
 }
 
-async function deleteOwnUser (req, res) {
+async function deleteOwnUser (req, res, next) {
   try {
-    await Users.findOneAndDelete(res.locals.user)
-    res.status(200).json('Usuario eliminado')
-  } catch (error) { res.send(error) }
+    const user = await Users.findOne({ email: res.locals.user.email })
+      .populate('materials')
+      .populate('events')
+
+    const materialsInUse = user.materials.filter(e => e.status === 'in use').length
+    const eventsInProgress = user.materials.filter(e => e.status === 'in progress').length
+
+    if (materialsInUse > 0 || eventsInProgress > 0) {
+      res.status(403).send('Error: User cannot be deleted while it still has materials in use or events in progress')
+    } else {
+      user.delete()
+      res.status(200).json('Succeed: User has been deleted')
+    }
+  } catch (error) { next(error) }
 }
 
 module.exports = {
@@ -123,11 +161,11 @@ module.exports = {
   getUser,
   updatetUser,
   deleteUser,
-  // getUserMaterials,
-  // getUserEvents,
+  getUserMaterials,
+  getUserEvents,
   getOwnUser,
-  // getOwnUserMaterials,
+  getOwnUserMaterials,
   updateOwnUser,
-  // getOwnUserEvents
+  getOwnUserEvents,
   deleteOwnUser
 }

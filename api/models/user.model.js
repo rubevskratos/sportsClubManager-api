@@ -35,10 +35,21 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  materialHeld: [
+  materials: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'material'
+      itemId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'material'
+      },
+      quantity: {
+        type: Number,
+        required: true
+      },
+      status: {
+        type: String,
+        enum: ['in use', 'returned'],
+        required: true
+      }
     }
   ],
   events: [
