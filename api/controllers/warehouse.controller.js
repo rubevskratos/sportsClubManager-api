@@ -1,5 +1,6 @@
 const Warehouses = require('../models/warehouse.model')
 const Users = require('../models/user.model')
+const Items = require('../models/item.model')
 
 async function createWarehouse (req, res, next) {
   try {
@@ -56,10 +57,44 @@ async function deleteWarehouse (req, res, next) {
   }
 }
 
+async function addWarehouseItem (req, res, next) {
+  try {
+    const item = await Items.findById(req.params.itemId)
+    const warehouse = await Warehouses.findById(req.params.id)
+      .populate({
+        path: 'items',
+        populate: {
+          path: 'itemId',
+          model: 'item'
+        }
+      })
+
+    const warehouseItem = warehouse.items.find(element => element.itemId.id === item.id)
+
+    if (warehouseItem) {
+      res.status(403).send('Error: Item already exists in this warehouse, to add stock use PUT instead')
+    } else {
+      warehouse.items.push({
+        itemId: item.id,
+        quantityAvailable: req.body.quantityAvailable,
+        totalQuantity: req.body.quantityAvailable
+      })
+      warehouse.save()
+      item.qtyAvailable = item.qtyAvailable + req.body.quantityAvailable
+      item.qtyTotal = item.qtyTotal + req.body.quantityAvailable
+      item.save()
+      res.status(200).send(`Success: Added ${req.body.quantityAvailable} units of ${item.name} to ${warehouse.name}`)
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   createWarehouse,
   getWarehouses,
   getWarehouse,
   updateWarehouse,
-  deleteWarehouse
+  deleteWarehouse,
+  addWarehouseItem
 }
