@@ -37,17 +37,29 @@ const userSchema = new mongoose.Schema({
   },
   materials: [
     {
+      warehouseId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'warehouse',
+        required: true
+      },
+      eventId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'event',
+        required: true
+      },
       itemId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'material'
+        ref: 'material',
+        required: true
       },
       quantity: {
         type: Number,
+        min: [1, 'User cannot use less than 1 items'],
         required: true
       },
       status: {
         type: String,
-        enum: ['in use', 'returned'],
+        enum: ['booked', 'in use'],
         required: true
       }
     }

@@ -13,11 +13,21 @@ const {
   updateEvent,
   deleteEvent,
   addParticipant,
-  removeParticipant
+  removeParticipant,
+  returnOneEventItem
 } = require('../controllers/event.controller')
+
+const {
+  returnOneUserItem
+} = require('../controllers/user.controller')
+
+const {
+  updateOneStock
+} = require('../controllers/inventory.controller')
 
 router.get('/', checkAuth, getEvents)
 router.get('/:id', checkAuth, getOneEvent)
+router.put('/:id/materials/:itemId', checkAuth, checkRole, returnOneEventItem, returnOneUserItem, updateOneStock)
 router.get('/:id/participants', checkAuth, getParticipants)
 router.put('/:id/participants/:userId', checkAuth, addParticipant)
 router.put('/:id/participants', checkAuth, addParticipant)

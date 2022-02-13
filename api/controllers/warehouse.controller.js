@@ -90,6 +90,10 @@ async function addWarehouseItem (req, res, next) {
   }
 }
 
+// updateWarehouseStock - Sólo para actualizar qtyTotal y automaticamente añade esa misma cantidad al available. No actualiza de forma directa, hace cálculo con la cantidad indicada (qtyTotal = qtyTotal + req.body.qtyTotal) : Sólo admin
+
+// deleteWarehouseItem - Sólo cuando no hay stock en qtyTotal : Sólo admin
+
 module.exports = {
   createWarehouse,
   getWarehouses,

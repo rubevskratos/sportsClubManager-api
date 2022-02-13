@@ -2,6 +2,8 @@
 const Events = require('../models/event.model')
 const Users = require('../models/user.model')
 
+const { errorHandling } = require('../utils')
+
 async function createEvent (req, res, next) {
   try {
     const user = await Users.findOne({ email: res.locals.user.email })
@@ -153,6 +155,61 @@ async function getParticipants (req, res, next) {
   }
 }
 
+async function returnOneEventItem (req, res, next) {
+  try {
+    if (!req.body.source) { req.body.source = 'return' }
+    if (!req.body.movementType) { req.body.movementType = 'in' }
+    const event = await Events.findById(req.body.eventId)
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'item',
+          model: 'item'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'warehouse',
+          model: 'warehouse'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'usedBy',
+          model: 'user'
+        }
+      })
+
+    const item = event.materials.filter(element => {
+      if (element.item.id === req.params.itemId && element.warehouse.id === req.body.warehouseId && element.usedBy.id === req.body.userId) {
+        return true
+      } else {
+        return false
+      }
+    })
+    const itemIndex = event.materials.indexOf(item)
+
+    const remainingQty = item.qtyBooked - (item.qtyReturned + req.body.quantity)
+
+    if (remainingQty < 0) {
+      res.status(403).send('Error: You are not allowed to return more items than what you have currently in use')
+    } else if (remainingQty === 0) {
+      event.materials[itemIndex].qtyReturned = event.materials[itemIndex].qtyReturned + req.body.quantity
+      event.materials[itemIndex].status = 'returned'
+      event.save()
+      next()
+    } else if (remainingQty > 0) {
+      event.materials[itemIndex].qtyReturned = event.materials[itemIndex].qtyReturned + req.body.quantity
+      event.save()
+      next()
+    }
+  } catch (error) {
+    errorHandling(error)
+  }
+}
+
 module.exports = {
   createEvent,
   updateEvent,
@@ -161,5 +218,6 @@ module.exports = {
   getOneEvent,
   getParticipants,
   addParticipant,
-  removeParticipant
+  removeParticipant,
+  returnOneEventItem
 }

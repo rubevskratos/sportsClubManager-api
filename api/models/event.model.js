@@ -50,11 +50,16 @@ const eventSchema = new mongoose.Schema({
     {
       item: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'material'
+        ref: 'material',
+        required: true
       },
       qtyBooked: {
         type: Number,
         min: [1, 'Cannot book 0 units']
+      },
+      qtyReturned: {
+        type: Number,
+        min: [0, 'Cannot return more than booked']
       },
       usedBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -65,7 +70,12 @@ const eventSchema = new mongoose.Schema({
       status: {
         type: String,
         required: true,
-        enum: ['in use', 'returned']
+        enum: ['booked', 'in use', 'returned']
+      },
+      warehouse: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'warehouse',
+        required: true
       }
     }
   ],

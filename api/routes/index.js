@@ -9,9 +9,8 @@ const warehouseRouter = require('./warehouse.router')
 router.use('/auth', authRouter)
 router.use('/users', userRouter)
 router.use('/events', eventRouter)
-router.use('/location', locationRouter)
+router.use('/locations', locationRouter)
 router.use('/items', itemRouter)
 router.use('/warehouses', warehouseRouter)
-// router.use('/inventory', inventoryRouter)
 
 module.exports = router

@@ -1,4 +1,7 @@
 const Users = require('../models/user.model')
+
+const { errorHandling } = require('../utils')
+
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
@@ -156,6 +159,70 @@ async function deleteOwnUser (req, res, next) {
   } catch (error) { next(error) }
 }
 
+async function returnOneUserItem (req, res, next) {
+  try {
+    if (!req.body.source) { req.body.source = 'return' }
+    if (!req.body.movementType) { req.body.movementType = 'in' }
+    const usedBy = res.headers.userId ? res.headers.userId : await Users.findOne(res.locals.user).id
+    const user = await Users.findById(usedBy)
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'warehouseId',
+          model: 'warehouse'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'eventId',
+          model: 'event'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'itemId',
+          model: 'item'
+        }
+      })
+
+    const item = user.materials.find(element => {
+      if (element.warehouseId.id === req.body.warehouseId && element.eventId.id === req.body.eventId && element.itemId.id === req.params.itemId) {
+        return true
+      } else {
+        return false
+      }
+    })
+    const itemIndex = user.materials.indexOf(item)
+
+    if (item.status !== 'in use') {
+      res.status(403).send('Error: You are not allowed to return items that are in a booked status')
+    } else {
+      const remainingQty = item.quantity - req.body.quantity
+      if (remainingQty < 0) {
+        res.status(403).send('Error: You are not allowed to return more items than what you have currently in use')
+      } else if (remainingQty === 0) {
+        user.materials = user.materials.filter(element => {
+          if (element.warehouseId.id === req.body.warehouseId && element.eventId.id === req.body.eventId && element.itemId.id === req.params.itemId) {
+            return false
+          } else {
+            return true
+          }
+        })
+        user.save()
+        next()
+      } else if (remainingQty > 0) {
+        user.materials[itemIndex].quantity = remainingQty
+        user.save()
+        next()
+      }
+    }
+  } catch (error) {
+    errorHandling(error) // exceptionally used here to avoid sending error to the event controller
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUser,
@@ -167,5 +234,6 @@ module.exports = {
   getOwnUserMaterials,
   updateOwnUser,
   getOwnUserEvents,
-  deleteOwnUser
+  deleteOwnUser,
+  returnOneUserItem
 }
