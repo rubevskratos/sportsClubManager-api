@@ -1,6 +1,7 @@
 
 const Events = require('../models/event.model')
 const Users = require('../models/user.model')
+const Items = require('../models/item.model')
 
 const { errorHandling } = require('../utils')
 
@@ -210,6 +211,72 @@ async function returnOneEventItem (req, res, next) {
   }
 }
 
+async function addMaterial (req, res, next) {
+  try {
+    const event = await Events.findById(req.params.id)
+      .populate('organizer')
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'item',
+          model: 'item'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'usedBy',
+          model: 'user'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'warehouse',
+          model: 'warehouse'
+        }
+      })
+
+      console.log(event)
+    const item = await Items.findById(req.params.itemId)
+    const eventMaterial = {
+      item: item.id,
+      qtyBooked: req.body.quantity,
+      usedBy: req.body.usedBy ? req.body.usedBy : event.organizer.id,
+      warehouse: req.body.warehouse,
+      status: 'booked'
+    }
+
+    const userMaterial = {
+      warehouseId: eventMaterial.warehouse,
+      eventId: req.params.id,
+      itemId: eventMaterial.item,
+      quantity: eventMaterial.qtyBooked,
+      status: eventMaterial.status
+    }
+    const user = await Users.findById(eventMaterial.usedBy)
+    const checkItem = event.materials.find(element => {
+      if (element.item.id === eventMaterial.item && element.usedBy.id === eventMaterial.usedBy && element.warehouse.id === eventMaterial.warehouse) {
+        return true
+      } else {
+        return false
+      }
+    })
+    console.log(user)
+    if (checkItem) {
+      res.status(403).send('Error: You have alredy requested this material for this user from this wharehouse')
+    } else {
+      event.materials.push(eventMaterial)
+      event.save()
+      user.materials.push(userMaterial)
+      user.save()
+      res.status(200).send('Sucess: Material added')
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   createEvent,
   updateEvent,
@@ -219,5 +286,6 @@ module.exports = {
   getParticipants,
   addParticipant,
   removeParticipant,
-  returnOneEventItem
+  returnOneEventItem,
+  addMaterial
 }
