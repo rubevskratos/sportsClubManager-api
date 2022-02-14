@@ -28,22 +28,26 @@ const warehouseSchema = new mongoose.Schema({
       quantityAvailable: {
         type: Number,
         required: true,
-        default: 0
+        default: 0,
+        min: [0, 'Error: No puede haber menos de 0 unidades']
       },
       quantityBooked: {
         type: Number,
         required: true,
-        default: 0
+        default: 0,
+        min: [0, 'Error: No puede haber menos de 0 unidades']
       },
       quantityDefect: {
         type: Number,
         required: true,
-        default: 0
+        default: 0,
+        min: [0, 'Error: No puede haber menos de 0 unidades']
       },
       totalQuantity: {
         type: Number,
         required: true,
-        default: 0
+        default: 0,
+        min: [0, 'Error: No puede haber menos de 0 unidades']
       }
     }
   ],
