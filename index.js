@@ -27,7 +27,7 @@ const app = express()
 
 let baseUrl = ''
 if (typeof window !== 'undefined') {
-  baseUrl = window.location.origin
+  baseUrl = window.location
 } else {
   baseUrl = process.env.URL
 }
