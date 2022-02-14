@@ -61,7 +61,6 @@ async function updateOneStock (req, res, next) {
 async function updateStock (req, res, next) {
   try {
     const items = res.inventoryData
-    console.log(items)
     for (let i = 0; i < items.length; i++) {
       const element = items[i]
       const warehouse = await Warehouses.findById(element.warehouseId)

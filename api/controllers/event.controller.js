@@ -3,8 +3,6 @@ const Events = require('../models/event.model')
 const Users = require('../models/user.model')
 const Items = require('../models/item.model')
 
-const { errorHandling } = require('../utils')
-
 async function createEvent (req, res, next) {
   try {
     const user = await Users.findOne({ email: res.locals.user.email })
@@ -162,8 +160,7 @@ async function returnOneEventItem (req, res, next) {
     if (!req.body.movementType) { req.body.movementType = 'in' }
     if (!req.body.eventId) { req.body.eventId = req.params.id }
     if (!req.body.usedBy) {
-      const user = await Users.findOne({ email: res.locals.user.email })
-      req.body.usedBy = user.id
+      req.body.usedBy = res.locals.user.id
     }
 
     const event = await Events.findById(req.body.eventId)
@@ -213,7 +210,7 @@ async function returnOneEventItem (req, res, next) {
       res.status(400).send(`Error: Remaining quantity is ${remainingQty}`)
     }
   } catch (error) {
-    console.log(error)
+    next(error)
   }
 }
 
@@ -313,8 +310,8 @@ async function confirmEvent (req, res, next) {
         }
       })
 
-    const checkMetParticipants = event.minParticipants === event.participants.length
     const checkPermissions = res.locals.user.id === event.organizer.id || res.locals.user.role === 'admin'
+    const checkMetParticipants = event.minParticipants === event.participants.length
 
     if (!checkPermissions) {
       res.status(403).send('Error: Only and administrator or event\'s organizer can confirm this event.')
@@ -381,7 +378,7 @@ async function confirmEvent (req, res, next) {
       next()
     }
   } catch (error) {
-    errorHandling(error)
+    next(error)
   }
 }
 
