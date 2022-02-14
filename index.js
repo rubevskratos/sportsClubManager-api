@@ -25,6 +25,13 @@ const { errorHandling } = require('./api/utils/errorHandling.js')
 
 const app = express()
 
+let baseUrl = ''
+if (typeof window !== 'undefined') {
+  baseUrl = window.location.origin
+} else {
+  baseUrl = process.env.URL
+}
+
 try {
   app
     .use(cors())
@@ -38,7 +45,7 @@ try {
     .listen(process.env.PORT, () => {
       console.info('\n\n' + '>'.repeat(40))
       console.info('💻  API en linea')
-      console.info(`📡  Ruta: ${process.env.URL}:${process.env.PORT}`)
+      console.info(`📡  Ruta: ${baseUrl}:${process.env.PORT}`)
       console.info('>'.repeat(40) + '\n')
     })
 } catch (error) {
