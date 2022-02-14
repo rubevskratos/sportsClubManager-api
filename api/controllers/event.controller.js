@@ -270,6 +270,8 @@ async function addMaterial (req, res, next) {
 
     if (checkItem) {
       res.status(403).send('Error: You have alredy requested this material for this user from this wharehouse')
+    } else if (event.status !== 'planned') {
+      res.status(403).send(`Error: You are not authorized to add materials to an event that is in status ${event.status}`)
     } else {
       event.materials.push(eventMaterial)
       event.save()
@@ -312,8 +314,11 @@ async function confirmEvent (req, res, next) {
       })
 
     const checkMetParticipants = event.minParticipants === event.participants.length
+    const checkPermissions = res.locals.user.id === event.organizer.id || res.locals.user.role === 'admin'
 
-    if (!checkMetParticipants) {
+    if (!checkPermissions) {
+      res.status(403).send('Error: Only and administrator or event\'s organizer can confirm this event.')
+    } else if (!checkMetParticipants) {
       res.status(403).send('Error: Minimum number of participants not met, event cannot be confirmed.')
     } else if (event.status !== 'planned') {
       res.status(403).send(`Error: Cannot confirm event. Current status is [${event.status}]. To confirm an event, status must be [planned]`)
