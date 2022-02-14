@@ -2,7 +2,7 @@ const Users = require('../models/user.model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-const signup = async (req, res) => {
+const signup = async (req, res, next) => {
   try {
     const hash = bcrypt.hashSync(req.body.password, 10)
     req.body.password = hash
@@ -13,7 +13,7 @@ const signup = async (req, res) => {
 
     res.status(200).json({ token })
   } catch (error) {
-    res.status(500).send('Error creating user')
+    next(error)
   }
 }
 
