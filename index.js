@@ -35,10 +35,10 @@ try {
       res.send('API running ok')
     })
     .use(errorHandling)
-    .listen(process.env.EXPRESS_PORT, () => {
+    .listen(process.env.PORT, () => {
       console.info('\n\n' + '>'.repeat(40))
       console.info('💻  API en linea')
-      console.info(`📡  Ruta: ${process.env.EXPRESS_URL}:${process.env.EXPRESS_PORT}`)
+      console.info(`📡  Ruta: ${process.env.URL}:${process.env.PORT}`)
       console.info('>'.repeat(40) + '\n')
     })
 } catch (error) {
