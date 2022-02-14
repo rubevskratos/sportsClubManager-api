@@ -50,7 +50,7 @@ const eventSchema = new mongoose.Schema({
     {
       item: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'material',
+        ref: 'item',
         required: true
       },
       qtyBooked: {

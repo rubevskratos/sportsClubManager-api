@@ -210,6 +210,22 @@ async function returnOneEventItem (req, res, next) {
   }
 }
 
+async function confirmEvent (req, res, next) {
+  try {
+    const event = await Events.findById(req.params.id)
+      .populate('participants')
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'item',
+          model: 'item'
+        }
+      })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   createEvent,
   updateEvent,
@@ -219,5 +235,6 @@ module.exports = {
   getParticipants,
   addParticipant,
   removeParticipant,
-  returnOneEventItem
+  returnOneEventItem,
+  confirmEvent
 }
