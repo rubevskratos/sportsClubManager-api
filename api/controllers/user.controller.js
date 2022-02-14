@@ -1,7 +1,5 @@
 const Users = require('../models/user.model')
 
-const { errorHandling } = require('../utils')
-
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
@@ -163,8 +161,11 @@ async function returnOneUserItem (req, res, next) {
   try {
     if (!req.body.source) { req.body.source = 'return' }
     if (!req.body.movementType) { req.body.movementType = 'in' }
-    const usedBy = res.headers.userId ? res.headers.userId : await Users.findOne(res.locals.user).id
-    const user = await Users.findById(usedBy)
+    if (!req.body.usedBy) {
+      req.body.usedBy = res.locals.user.id
+    }
+
+    const user = await Users.findById(req.body.usedBy)
       .populate({
         path: 'materials',
         populate: {
@@ -219,7 +220,7 @@ async function returnOneUserItem (req, res, next) {
       }
     }
   } catch (error) {
-    errorHandling(error) // exceptionally used here to avoid sending error to the event controller
+    res.status(500).json(error)// exceptionally used here to avoid sending error to the event controller
   }
 }
 

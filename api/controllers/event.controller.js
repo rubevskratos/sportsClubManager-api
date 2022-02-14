@@ -160,6 +160,12 @@ async function returnOneEventItem (req, res, next) {
   try {
     if (!req.body.source) { req.body.source = 'return' }
     if (!req.body.movementType) { req.body.movementType = 'in' }
+    if (!req.body.eventId) { req.body.eventId = req.params.id }
+    if (!req.body.usedBy) {
+      const user = await Users.findOne({ email: res.locals.user.email })
+      req.body.usedBy = user.id
+    }
+
     const event = await Events.findById(req.body.eventId)
       .populate({
         path: 'materials',
@@ -182,16 +188,14 @@ async function returnOneEventItem (req, res, next) {
           model: 'user'
         }
       })
-
-    const item = event.materials.filter(element => {
-      if (element.item.id === req.params.itemId && element.warehouse.id === req.body.warehouseId && element.usedBy.id === req.body.userId) {
+    const item = event.materials.find(element => {
+      if (element.item.id === req.params.itemId && element.warehouse.id === req.body.warehouseId && element.usedBy.id === req.body.usedBy) {
         return true
       } else {
         return false
       }
     })
     const itemIndex = event.materials.indexOf(item)
-
     const remainingQty = item.qtyBooked - (item.qtyReturned + req.body.quantity)
 
     if (remainingQty < 0) {
@@ -205,9 +209,11 @@ async function returnOneEventItem (req, res, next) {
       event.materials[itemIndex].qtyReturned = event.materials[itemIndex].qtyReturned + req.body.quantity
       event.save()
       next()
+    } else {
+      res.status(400).send(`Error: Remaining quantity is ${remainingQty}`)
     }
   } catch (error) {
-    errorHandling(error)
+    console.log(error)
   }
 }
 
@@ -276,6 +282,104 @@ async function addMaterial (req, res, next) {
   }
 }
 
+async function confirmEvent (req, res, next) {
+  try {
+    const inventoryData = []
+    const eventId = req.params.id
+    const event = await Events.findById(req.params.id)
+      .populate('organizer')
+      .populate('participants')
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'item',
+          model: 'item'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'usedBy',
+          model: 'user'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'warehouse',
+          model: 'warehouse'
+        }
+      })
+
+    const checkMetParticipants = event.minParticipants === event.participants.length
+
+    if (!checkMetParticipants) {
+      res.status(403).send('Error: Minimum number of participants not met, event cannot be confirmed.')
+    } else if (event.status !== 'planned') {
+      res.status(403).send(`Error: Cannot confirm event. Current status is [${event.status}]. To confirm an event, status must be [planned]`)
+    } else {
+      // Actualizar el estado del evento
+      event.status = 'confirmed'
+      // Actualizar el estado de reserva de los materiales en el evento
+      for (let i = 0; i < event.materials.length; i++) {
+        const element = event.materials[i]
+        element.status = 'in use'
+
+        const user = await Users.findById(element.usedBy)
+          .populate({
+            path: 'materials',
+            populate: {
+              path: 'itemId',
+              model: 'item'
+            }
+          })
+          .populate({
+            path: 'materials',
+            populate: {
+              path: 'warehouseId',
+              model: 'warehouse'
+            }
+          })
+          .populate({
+            path: 'materials',
+            populate: {
+              path: 'eventId',
+              model: 'event'
+            }
+          })
+
+        const material = user.materials.find(el => {
+          if (el.itemId.id === element.item.id && el.eventId.id === eventId && el.warehouseId.id === element.warehouse.id) {
+            return true
+          } else {
+            return false
+          }
+        })
+        const materialIndex = user.materials.indexOf(material)
+        // Actualiza el estado de reserva de los materiales en el perfil del usuario
+        user.materials[materialIndex].status = 'in use'
+        user.save()
+
+        // Crear un objeto JSON con los campos de almacén, itemId, quantity, movementType = 'in' y source = 'booking' para pasarlo al middleware del inventario y que actualice los almacenes.
+        const inventoryItem = {
+          warehouseId: element.warehouse.id,
+          itemId: element.item.id,
+          quantity: element.qtyBooked,
+          movementType: 'out',
+          source: 'booking'
+        }
+        inventoryData.push(inventoryItem)
+      }
+      event.save()
+      res.inventoryData = inventoryData
+      // Añadir el objeto JSON al cuerpo de la respuesta para pasarlo al middleware
+      next()
+    }
+  } catch (error) {
+    errorHandling(error)
+  }
+}
+
 module.exports = {
   createEvent,
   updateEvent,
@@ -286,5 +390,6 @@ module.exports = {
   addParticipant,
   removeParticipant,
   returnOneEventItem,
-  addMaterial
+  addMaterial,
+  confirmEvent
 }

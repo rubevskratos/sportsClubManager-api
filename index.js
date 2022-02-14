@@ -6,7 +6,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const morgan = require('morgan')
 const cors = require('cors')
-const errorHandling = require('./api/utils/errorHandling.js')
+const { errorHandling } = require('./api/utils/errorHandling.js')
 
 // Start database connection. MongoDB server must be running
 

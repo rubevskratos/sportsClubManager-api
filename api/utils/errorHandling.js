@@ -5,4 +5,6 @@ const errorHandling = (err, req, res, next) => {
   })
 }
 
-module.exports = errorHandling
+module.exports = {
+  errorHandling
+}
