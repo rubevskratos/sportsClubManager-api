@@ -59,7 +59,8 @@ const eventSchema = new mongoose.Schema({
       },
       qtyReturned: {
         type: Number,
-        min: [0, 'Cannot return more than booked']
+        min: [0, 'Cannot return more than booked'],
+        default: 0
       },
       usedBy: {
         type: mongoose.Schema.Types.ObjectId,
