@@ -2,6 +2,7 @@
 const Events = require('../models/event.model')
 const Users = require('../models/user.model')
 const Items = require('../models/item.model')
+const Warehouses = require('../models/warehouse.model')
 
 async function createEvent (req, res, next) {
   try {
@@ -313,7 +314,30 @@ async function confirmEvent (req, res, next) {
     const checkPermissions = res.locals.user.id === event.organizer.id || res.locals.user.role === 'admin'
     const checkMetParticipants = event.minParticipants === event.participants.length
 
-    if (!checkPermissions) {
+    let checkStock = []
+    for (let i = 0; i < event.materials.length; i++) {
+      const element = event.materials[i]
+      const elementWarehouse = await Warehouses.findById(element.warehouse.id)
+        .populate({
+          path: 'items',
+          populate: {
+            path: 'itemId',
+            model: 'item'
+          }
+        })
+
+      const warehouseItem = elementWarehouse.items.find(item => item.itemId.id === element.item.id)
+      const itemIndex = elementWarehouse.items.indexOf(warehouseItem)
+      if (elementWarehouse.items[itemIndex].quantityAvailable < element.qtyBooked) {
+        checkStock.push(false)
+      } else {
+        checkStock.push(true)
+      }
+    }
+    checkStock = checkStock.filter(el => el === false)
+    if (checkStock.length > 0) {
+      res.status(403).send('Error: There in not sufficient stock vailable')
+    } else if (!checkPermissions) {
       res.status(403).send('Error: Only and administrator or event\'s organizer can confirm this event.')
     } else if (!checkMetParticipants) {
       res.status(403).send('Error: Minimum number of participants not met, event cannot be confirmed.')
