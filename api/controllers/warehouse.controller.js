@@ -153,8 +153,8 @@ async function deleteWarehouseItem (req, res, next) {
       for (let i = 0; i < events.length; i++) {
         const event = events[i]
         await event.populate({ path: 'materials', populate: { path: 'item', model: 'item' } })
-        const checkExists = event.materials.find(e => e.item.id === req.params.itemId)
-        console.log(checkExists)
+        await event.populate({ path: 'materials', populate: { path: 'warehouse', model: 'warehouse' } })
+        const checkExists = event.materials.find(e => e.item.id === req.params.itemId && e.warehouse.id === req.params.id)
         if (checkExists) {
           checkUsed = 1
           i = events.length
