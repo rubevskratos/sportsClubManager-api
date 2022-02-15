@@ -28,7 +28,7 @@ const signup = async (req, res, next) => {
 
 const login = async (req, res) => {
   try {
-    const user = await Users.findOne({ email: req.body.email })
+    const user = await Users.findOne({ email: req.body.email }).select('+password')
 
     if (!user) return res.status(500).send('Username or password not valid')
 

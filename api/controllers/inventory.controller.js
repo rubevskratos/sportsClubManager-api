@@ -32,7 +32,7 @@ async function updateOneStock (req, res, next) {
           break
         case 'stock':
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable + req.body.quantity
-          warehouse.items[itemIndex].quantityTotal = warehouse.items[itemIndex].quantityTotal + req.body.quantity
+          warehouse.items[itemIndex].totalQuantity = warehouse.items[itemIndex].totalQuantity + req.body.quantity
           break
       }
     } else if (req.body.movementType === 'out') {
@@ -46,8 +46,9 @@ async function updateOneStock (req, res, next) {
           warehouse.items[itemIndex].quantityDefect = warehouse.items[itemIndex].quantityDefect + req.body.quantity
           break
         case 'stock':
+          if (req.body.quantity < 0) { req.body.quantity = req.body.quantity * -1 }
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable - req.body.quantity
-          warehouse.items[itemIndex].quantityTotal = warehouse.items[itemIndex].quantityTotal - req.body.quantity
+          warehouse.items[itemIndex].totalQuantity = warehouse.items[itemIndex].totalQuantity - req.body.quantity
           break
       }
     }
@@ -94,7 +95,7 @@ async function updateStock (req, res, next) {
             break
           case 'stock':
             warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable + element.quantity
-            warehouse.items[itemIndex].quantityTotal = warehouse.items[itemIndex].quantityTotal + element.quantity
+            warehouse.items[itemIndex].totalQuantity = warehouse.items[itemIndex].totalQuantity + element.quantity
             break
         }
       } else if (element.movementType === 'out') {
@@ -109,11 +110,10 @@ async function updateStock (req, res, next) {
             break
           case 'stock':
             warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable - element.quantity
-            warehouse.items[itemIndex].quantityTotal = warehouse.items[itemIndex].quantityTotal - element.quantity
+            warehouse.items[itemIndex].totalQuantity = warehouse.items[itemIndex].totalQuantity - element.quantity
             break
         }
       }
-
       await warehouse.save()
     }
     res.status(200).send('Success: Inventory updated')

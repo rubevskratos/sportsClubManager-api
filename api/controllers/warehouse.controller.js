@@ -1,6 +1,7 @@
 const Warehouses = require('../models/warehouse.model')
 const Users = require('../models/user.model')
 const Items = require('../models/item.model')
+const Events = require('../models/event.model')
 
 async function createWarehouse (req, res, next) {
   try {
@@ -90,15 +91,96 @@ async function addWarehouseItem (req, res, next) {
   }
 }
 
-// updateWarehouseStock - Sólo para actualizar qtyTotal y automaticamente añade esa misma cantidad al available. No actualiza de forma directa, hace cálculo con la cantidad indicada (qtyTotal = qtyTotal + req.body.qtyTotal) : Sólo admin
+async function updateWarehouseStock (req, res, next) {
+  try {
+    const warehouse = await Warehouses.findById(req.params.id)
+      .populate({
+        path: 'items',
+        populate: {
+          path: 'itemId',
+          model: 'item'
+        }
+      })
+    const item = warehouse.items.find(e => e.itemId.id === req.params.itemId)
 
-// deleteWarehouseItem - Sólo cuando no hay stock en qtyTotal : Sólo admin
+    if (!item) {
+      res.status(400).send('Error: item not found in this warehouse')
+    } else if (!req.body.quantity) {
+      res.status(500).send('Error: debes especificar una cantidad a actualizar.')
+    } else if (Number.isInteger(req.body.quantity) === false) {
+      res.status(500).send('Error: debes utilizar unidades enteras')
+    } else {
+      if (req.body.quantity < 0) {
+        const checkAvailable = item.quantityAvailable + req.body.quantity >= 0
+        if (checkAvailable) {
+          req.body.warehouseId = warehouse.id
+          req.body.source = 'stock'
+          req.body.movementType = 'out'
+          req.body.quantity = req.body.quantity * -1
+          next()
+        } else {
+          res.status(500).send(`Error: Can't remove more than available, current available is ${item.quantityAvailable}`)
+        }
+      } else {
+        req.body.warehouseId = warehouse.id
+        req.body.source = 'stock'
+        req.body.movementType = 'in'
+        next()
+      }
+    }
+  } catch (error) {
+    next(error)
+  }
+}
 
+async function deleteWarehouseItem (req, res, next) {
+  try {
+    const warehouse = await Warehouses.findById(req.params.id)
+      .populate({
+        path: 'items',
+        populate: {
+          path: 'itemId',
+          model: 'item'
+        }
+      })
+    const item = warehouse.items.find(e => e.itemId.id === req.params.itemId)
+
+    if (!item) {
+      res.status(400).send('Error: Item not found in warehouse')
+    } else {
+      const events = await Events.find()
+      let checkUsed = 0
+      for (let i = 0; i < events.length; i++) {
+        const event = events[i]
+        await event.populate({ path: 'materials', populate: { path: 'item', model: 'item' } })
+        const checkExists = event.materials.find(e => e.item.id === req.params.itemId)
+        console.log(checkExists)
+        if (checkExists) {
+          checkUsed = 1
+          i = events.length
+        }
+      }
+      if (item.totalQuantity !== 0) {
+        res.status(500).send('Error: cannot remove an item with stock, please first remove any stock')
+      } else if (checkUsed) {
+        res.status(500).send('Error: cannot remove an item that has been used in an event for traceability purposes.')
+      } else {
+        warehouse.items = warehouse.items.filter(e => e.itemId.id !== req.params.itemId)
+        warehouse.save()
+        res.status(200).send('Success: Item has been successfully removed')
+      }
+    }
+  } catch (error) {
+    next(error)
+  }
+}
 module.exports = {
   createWarehouse,
   getWarehouses,
   getWarehouse,
   updateWarehouse,
   deleteWarehouse,
-  addWarehouseItem
+  addWarehouseItem,
+  updateWarehouseStock,
+  deleteWarehouseItem
 }
