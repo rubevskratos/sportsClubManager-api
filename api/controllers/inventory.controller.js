@@ -24,35 +24,48 @@ async function updateOneStock (req, res, next) {
       switch (req.body.source) {
         case 'return':
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable + req.body.quantity
+          item.qtyAvailable = item.qtyAvailable + req.body.quantity
           warehouse.items[itemIndex].quantityBooked = warehouse.items[itemIndex].quantityBooked - req.body.quantity
+          item.qtyBooked = item.qtyBooked - req.body.quantity
           break
         case 'incident':
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable + req.body.quantity
+          item.qtyAvailable = item.qtyAvailable + req.body.quantity
           warehouse.items[itemIndex].quantityDefect = warehouse.items[itemIndex].quantityDefect - req.body.quantity
+          item.qtyDefect = item.qtyDefect - req.body.quantity
           break
         case 'stock':
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable + req.body.quantity
+          item.qtyAvailable = item.qtyAvailable + req.body.quantity
           warehouse.items[itemIndex].totalQuantity = warehouse.items[itemIndex].totalQuantity + req.body.quantity
+          item.qtyTotal = item.qtyTotal + req.body.quantity
           break
       }
     } else if (req.body.movementType === 'out') {
       switch (req.body.source) {
         case 'booking':
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable - req.body.quantity
+          item.qtyAvailable = item.qtyAvailable - req.body.quantity
           warehouse.items[itemIndex].quantityBooked = warehouse.items[itemIndex].quantityBooked + req.body.quantity
+          item.qtyBooked = item.qtyBooked + req.body.quantity
           break
         case 'incident':
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable - req.body.quantity
+          item.qtyDefect = item.qtyAvailable - req.body.quantity
           warehouse.items[itemIndex].quantityDefect = warehouse.items[itemIndex].quantityDefect + req.body.quantity
+          item.qtyDefect = item.qtyDefect + req.body.quantity
           break
         case 'stock':
           if (req.body.quantity < 0) { req.body.quantity = req.body.quantity * -1 }
           warehouse.items[itemIndex].quantityAvailable = warehouse.items[itemIndex].quantityAvailable - req.body.quantity
+          item.qtyAvailable = item.qtyAvailable - req.body.quantity
           warehouse.items[itemIndex].totalQuantity = warehouse.items[itemIndex].totalQuantity - req.body.quantity
+          item.qtyTotal = item.qtyTotal - req.body.quantity
           break
       }
     }
     warehouse.save()
+    item.save()
     res.status(200).send('Success: Inventory updated.')
   } catch (error) {
     next(error)

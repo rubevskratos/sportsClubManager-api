@@ -406,6 +406,71 @@ async function confirmEvent (req, res, next) {
   }
 }
 
+async function closeEvent (req, res, next) {
+  try {
+    const event = await Events.findById(req.params.id)
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'item',
+          model: 'item'
+        }
+      })
+      .populate({
+        path: 'materials',
+        populate: {
+          path: 'usedBy',
+          model: 'user'
+        }
+      })
+      .populate('organizer')
+      .populate('participants')
+
+    const checkReturned = event.materials.filter(e => e.status !== 'returned')
+
+    if (event.organizer.id !== res.locals.user.id && res.locals.user.role !== 'admin') {
+      res.status(403).send('Error: Only event organizer or admin can close this event.')
+    } else if (event.status === 'planned') {
+      if (event.participants.length > 0) {
+        for (let i = 0; i < event.participants.length; i++) {
+          const element = event.participants[i]
+          const user = await Users.findById(element.id)
+            .populate('events')
+          user.events = user.events.filter(e => e.id !== req.params.id)
+          user.save()
+        }
+      }
+      if (event.materials.length > 0) {
+        for (let i = 0; i < event.materials.length; i++) {
+          const element = event.materials[i]
+          const user = await Users.findById(element.usedBy.id)
+            .populate({
+              path: 'materials',
+              populate: {
+                path: 'eventId',
+                model: 'event'
+              }
+            })
+          user.materials = user.materials.filter(e => e.eventId.id !== event.id)
+          user.save()
+        }
+      }
+      event.delete()
+      res.status(200).send('Success: Planned event has been deleted')
+    } else if (event.status === 'ended') {
+      res.status(403).send('Error: Ended events cannot be closed again')
+    } else if (checkReturned.length > 0) {
+      res.status(500).send('Error: Cannot close an event while it has materials still in use')
+    } else {
+      event.status = 'ended'
+      event.save()
+      res.status(200).send('Success: Event has been ended.')
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   createEvent,
   updateEvent,
@@ -417,5 +482,6 @@ module.exports = {
   removeParticipant,
   returnOneEventItem,
   addMaterial,
-  confirmEvent
+  confirmEvent,
+  closeEvent
 }

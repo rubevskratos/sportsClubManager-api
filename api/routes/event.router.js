@@ -16,7 +16,8 @@ const {
   removeParticipant,
   returnOneEventItem,
   addMaterial,
-  confirmEvent
+  confirmEvent,
+  closeEvent
 } = require('../controllers/event.controller')
 
 const {
@@ -31,6 +32,7 @@ const {
 router.get('/', checkAuth, getEvents)
 router.get('/:id', checkAuth, getOneEvent)
 router.put('/:id/confirm', checkAuth, checkRole, confirmEvent, updateStock)
+router.put('/:id/close', checkAuth, checkRole, closeEvent)
 router.put('/:id/materials/return/:itemId', checkAuth, checkRole, returnOneEventItem, returnOneUserItem, updateOneStock)
 router.post('/:id/materials/:itemId', checkAuth, checkRole, addMaterial)
 router.get('/:id/participants', checkAuth, getParticipants)
