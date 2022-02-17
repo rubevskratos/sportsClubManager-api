@@ -269,7 +269,7 @@ async function addMaterial (req, res, next) {
         itemId: eventMaterial.item,
         quantity: eventMaterial.qtyBooked,
         status: eventMaterial.status
-      
+
       }
 
       const user = await Users.findById(eventMaterial.usedBy)
