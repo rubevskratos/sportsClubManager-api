@@ -240,42 +240,58 @@ async function addMaterial (req, res, next) {
           model: 'warehouse'
         }
       })
+    const warehouse = await Warehouses.findById(req.body.warehouse)
+      .populate({
+        path: 'items',
+        populate: {
+          path: 'itemId',
+          model: 'item'
+        }
+      })
+    const checkExists = warehouse.items.find(e => e.itemId.id === req.params.itemId)
 
-    const item = await Items.findById(req.params.itemId)
-    const eventMaterial = {
-      item: item.id,
-      qtyBooked: req.body.quantity,
-      usedBy: req.body.usedBy ? req.body.usedBy : event.organizer.id,
-      warehouse: req.body.warehouse,
-      status: 'booked'
-    }
-
-    const userMaterial = {
-      warehouseId: eventMaterial.warehouse,
-      eventId: req.params.id,
-      itemId: eventMaterial.item,
-      quantity: eventMaterial.qtyBooked,
-      status: eventMaterial.status
-    }
-    const user = await Users.findById(eventMaterial.usedBy)
-    const checkItem = event.materials.find(element => {
-      if (element.item.id === eventMaterial.item && element.usedBy.id === eventMaterial.usedBy && element.warehouse.id === eventMaterial.warehouse) {
-        return true
-      } else {
-        return false
-      }
-    })
-
-    if (checkItem) {
-      res.status(403).send('Error: You have alredy requested this material for this user from this wharehouse')
-    } else if (event.status !== 'planned') {
-      res.status(403).send(`Error: You are not authorized to add materials to an event that is in status ${event.status}`)
+    if (!checkExists) {
+      req.status(400).json('Error: Item not found in this warehouse')
     } else {
-      event.materials.push(eventMaterial)
-      event.save()
-      user.materials.push(userMaterial)
-      user.save()
-      res.status(200).send('Sucess: Material added')
+      const item = await Items.findById(req.params.itemId)
+
+      const eventMaterial = {
+        item: item.id,
+        qtyBooked: req.body.quantity,
+        usedBy: req.body.usedBy ? req.body.usedBy : event.organizer.id,
+        warehouse: req.body.warehouse,
+        status: 'booked'
+      }
+
+      const userMaterial = {
+        warehouseId: eventMaterial.warehouse,
+        eventId: req.params.id,
+        itemId: eventMaterial.item,
+        quantity: eventMaterial.qtyBooked,
+        status: eventMaterial.status
+      
+      }
+
+      const user = await Users.findById(eventMaterial.usedBy)
+      const checkItem = event.materials.find(element => {
+        if (element.item.id === eventMaterial.item && element.usedBy.id === eventMaterial.usedBy && element.warehouse.id === eventMaterial.warehouse) {
+          return true
+        } else {
+          return false
+        }
+      })
+
+      if (checkItem) {
+        res.status(403).send('Error: You have alredy requested this material for this user from this wharehouse')
+      } else if (event.status !== 'planned') {
+        res.status(403).send(`Error: You are not authorized to add materials to an event that is in status ${event.status}`)
+      } else {
+        event.materials.push(eventMaterial)
+        event.save()
+        user.materials.push(userMaterial)
+        user.save()
+        res.status(200).send('Sucess: Material added')
+      }
     }
   } catch (error) {
     next(error)
