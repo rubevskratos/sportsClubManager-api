@@ -28,6 +28,7 @@ const signup = async (req, res, next) => {
 
 const login = async (req, res) => {
   try {
+    console.log('Req Body: ', req.body)
     const user = await Users.findOne({ email: req.body.email }).select('+password')
 
     if (!user) return res.status(500).send('Username or password not valid')
@@ -39,6 +40,7 @@ const login = async (req, res) => {
       res.status(200).json({ token })
     })
   } catch (error) {
+    console.log('Login error: ', error)
     res.status(500).send('Error login user')
   }
 }
