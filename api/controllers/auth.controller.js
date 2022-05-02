@@ -18,7 +18,7 @@ const signup = async (req, res, next) => {
       user = await Users.create(req.body)
     }
 
-    const token = jwt.sign({ email: user.email }, process.env.SECRET, { expiresIn: '7d' })
+    const token = jwt.sign({ email: user.email }, process.env.SECRET, { expiresIn: '1d' })
 
     res.status(200).json({ token })
   } catch (error) {
